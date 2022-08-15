@@ -10,8 +10,10 @@ main:-
     write(Deck),
     nl,
     length(Deck, Len),
-    write(Len).
-
+    write(Len),
+    nl,
+    visaoDaMesa(MaoJogador, MaoDealer, 100, 'Hide'),
+    visaoDaMesa(MaoJogador, MaoDealer, 100, 'Show').
 lobby:-
     printBanca(100),
     pegaAposta(Aposta),
@@ -39,6 +41,32 @@ iniciaJogo(MaoJogador,MaoDealer,Deck5):-
     darCarta(Deck2, [], MaoDealer1, Deck3),
     darCarta(Deck3, MaoJogador1, MaoJogador, Deck4),
     darCarta(Deck4, MaoDealer1, MaoDealer, Deck5).
+
+visaoDaMesa(MaoJogador, MaoDealer, Aposta, 'Show'):-
+    cls,
+    write("Aposta: "),
+    write(Aposta),
+    nl,
+    write("Sua Mao: "),
+    imprimeMao(MaoJogador),
+    nl,
+    write("Mao do Dealer: "),
+    imprimeMao(MaoDealer),
+    nl.
+
+visaoDaMesa(MaoJogador, [Show|_], Aposta, 'Hide'):-
+    cls,
+    write("Aposta: "),
+    write(Aposta),
+    nl,
+    write("Sua Mao: "),
+    imprimeMao(MaoJogador),
+    nl,
+    write("Mao do Dealer: "),
+    imprimeCarta(Show),
+    write(", * de *"),
+    nl.
+
 
 temAs([carta('A',Naipe)|_], Flag):-
     carta('A',Naipe), 
