@@ -72,21 +72,17 @@ valorCarta(carta('10',Naipe), 10)  :- carta('10',Naipe).
 novoDeck(Deck):-
     findall(carta(F,N), carta(F,N), Deck).
 
-teste3:-
-    removeElemen([1,2,3,4,5,6,7,8], 4, R),
-    write(R).
+embaralha(Deck, NovoDeck):-
+    system:random_permutation(Deck, NovoDeck).
 
-teste2:-
-    novoDeck(Deck),
-    length(Deck, Len),
-    system:random(1,Len,Index),
-    nth1(Index, Deck, Elem),
-    delete(Deck,Elem,Deck1),
-    length(Deck1, Len1),
-    write(Len1),
-    nl,
-    write(Deck1).
+darCarta([HDeck|TDeck],CartasP,[HDeck|CartasP] ,TDeck).
+
 teste:- 
     novoDeck(Deck),
-    emabaralha(Deck, NovoDeck),
-    write(NovoDeck).
+    embaralha(Deck, DeckAtualizado),
+    darCarta(DeckAtualizado,[] , Participante, DeckAtualizado1),
+    write(DeckAtualizado),
+    nl,
+    write(DeckAtualizado1),
+    nl,
+    write(Participante).

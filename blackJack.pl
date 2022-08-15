@@ -2,21 +2,15 @@
 :- [cartas].
 
 main:-
-    MaoComAs = [carta('A',c),carta('2',h),carta('3',h),carta('2',h),carta('3',h)],
-    MaoSemAs = [carta('2',c),carta('3',c),carta('4',c),carta('5',c),carta('2',c)],
-    MaoComAsUsavel = [carta('A',d),carta('9',h),carta('A',s)],
-    MaoComAsNaoUsavel = [carta('K',d),carta('4',c),carta('A',c)],
-    valores_Mao(MaoComAs, V1),
-    valores_Mao(MaoSemAs, V2),
-    valores_Mao(MaoComAsUsavel, V3),
-    valores_Mao(MaoComAsNaoUsavel, V4),
-    printPontuacao(V1),
+    iniciaJogo(MaoJogador,MaoDealer,Deck),
+    write(MaoJogador),
     nl,
-    printPontuacao(V2),
+    write(MaoDealer),
     nl,
-    printPontuacao(V3),
+    write(Deck),
     nl,
-    printPontuacao(V4).
+    length(Deck, Len),
+    write(Len).
 
 lobby:-
     printBanca(100),
@@ -37,6 +31,14 @@ pegaAposta(Aposta):-
     
 printBanca(N):-
     write("Voce tem "), write(N), write(" fichas.").
+
+iniciaJogo(MaoJogador,MaoDealer,Deck5):-
+    novoDeck(Deck),
+    embaralha(Deck, Deck1),
+    darCarta(Deck1, [], MaoJogador1, Deck2),
+    darCarta(Deck2, [], MaoDealer1, Deck3),
+    darCarta(Deck3, MaoJogador1, MaoJogador, Deck4),
+    darCarta(Deck4, MaoDealer1, MaoDealer, Deck5).
 
 temAs([carta('A',Naipe)|_], Flag):-
     carta('A',Naipe), 
@@ -70,3 +72,4 @@ printPontuacao([V1|[V2]]):-
     write(" ou "),
     write(V2).
 
+cls :- write('\33\[2J').
