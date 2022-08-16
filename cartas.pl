@@ -75,7 +75,9 @@ imprimeCarta(carta(Figura, Naipe)):-
     write(' de '),
     write(Naipe).
 
-imprimeMao([]).
+imprimeMao([H|[]]):-
+    imprimeCarta(H),
+    write(".").
 imprimeMao([H|T]):-
     imprimeCarta(H),
     write(", "),
@@ -92,5 +94,5 @@ darCarta([HDeck|TDeck],CartasP,[HDeck|CartasP] ,TDeck).
 teste:- 
     novoDeck(Deck),
     embaralha(Deck, DeckAtualizado),
-    darCarta(DeckAtualizado,[] , Participante, [H|_]),
+    darCarta(DeckAtualizado,[] , _, [H|_]),
     imprimeCarta(H).
