@@ -19,10 +19,65 @@ main:-
     write(Len2),
     write(Deck2).
 
+testeResultado:-
+    iniciaJogo(MaoJ,MaoD,Deck),
+    rodadaJogador(Deck, MaoJ, MaoD, Deck1, MaoJ1, 100, 'True'),
+    rodadaDealer(Deck1, MaoD, Deck2, MaoD1, 'True'),
+    visaoDaMesa(MaoJ1, MaoD1, 100, 'Show'),
+    resultado(MaoJ1, MaoD1, Tag),
+    nl,
+    write(Tag).
+
 lobby:-
     printBanca(100),
     pegaAposta(Aposta),
-    write("Voce apostou "), write(Aposta), write(" fichas.").
+    write("Voce apostou "), write(Aposta), write(" fichas."),
+    Banca is 100 - Aposta,
+    nl,
+    write("Sua banca agora é "), write(Banca).
+
+% Tags de reultado:
+% 'D' = Dealer ganhou simples
+% 'J' = Jogador ganhou simples
+% 'E' = Empate (Push)
+% 'D/BJ' = Dealer ganhou Blackjack
+% 'J/BJ' = Jogador ganhou Blackjack
+resultado(MaoJ, MaoD, 'D/BJ'):-
+    maoEhBlackjack(MaoD),
+    \+ maoEhBlackjack(MaoJ),
+    !.
+resultado(MaoJ, MaoD, 'J/BJ'):-
+    \+ maoEhBlackjack(MaoD),
+    maoEhBlackjack(MaoJ),
+    !.
+resultado(MaoJ, MaoD, 'E'):-
+    maoEhBlackjack(MaoD),
+    maoEhBlackjack(MaoJ),
+    !.
+resultado(MaoJ, MaoD, 'E'):-
+    maoValida(MaoJ),
+    melhorValor(MaoD, ValorD),
+    melhorValor(MaoJ, ValorJ),
+    ValorD =:= ValorJ,
+    !.
+resultado(MaoJ, MaoD, 'D'):- % Se o jogador estourou o dealer ganha direto
+    \+ maoValida(MaoJ),
+    !.
+resultado(MaoJ, MaoD, 'J'):- % Se o jogador estourou o dealer ganha direto
+    maoValida(MaoJ),
+    \+ maoValida(MaoD),
+    !.
+resultado(MaoJ, MaoD, Tag):- % se ambas forem válidas, ganha o maior valor
+    maoValida(MaoD),
+    maoValida(MaoJ),
+    melhorValor(MaoD, ValorD),
+    melhorValor(MaoJ, ValorJ),
+    (ValorJ > ValorD -> Tag = 'J';
+    (ValorD > ValorJ -> Tag = 'D';
+     Tag = 'E')),
+    !.
+
+
 
 
 pegaAposta(Aposta):-
@@ -39,6 +94,9 @@ pegaAposta(Aposta):-
 printBanca(N):-
     write("Voce tem "), write(N), write(" fichas.").
 
+dealerUpcardEhAs([carta('A', _)|_], 'True'):-!.
+dealerUpcardEhAs([_|_], 'False').
+
 iniciaJogo(MaoJogador,MaoDealer,Deck5):-
     novoDeck(Deck),
     embaralha(Deck, Deck1),
@@ -48,21 +106,21 @@ iniciaJogo(MaoJogador,MaoDealer,Deck5):-
     darCarta(Deck4, MaoDealer1, MaoDealer, Deck5).
 
 visaoDaMesa(MaoJogador, MaoDealer, Aposta, 'Show'):-
-    valores_Mao(MaoJogador, ValoresJ),
-    valores_Mao(MaoDealer, ValoresD),
     nl,
     write("Aposta: "),
     write(Aposta),
     nl,
     write("Sua Mao: "),
     imprimeMao(MaoJogador),
-    write(" "), printPontuacaoFinal(ValoresJ),
+    write(" "), printPontuacaoFinal(MaoJogador),
     nl,
     write("Mao do Dealer: "),
     imprimeMao(MaoDealer),
-    write(" "), printPontuacaoFinal(ValoresD),
-    nl.
+    write(" "), printPontuacaoFinal(MaoDealer),
+    nl,
+    !.
 visaoDaMesa(MaoJogador, [Show|_], Aposta, 'Hide'):-
+    nl,
     valores_Mao(MaoJogador, ValoresJ),
     write("Aposta: "),
     write(Aposta),
@@ -74,10 +132,11 @@ visaoDaMesa(MaoJogador, [Show|_], Aposta, 'Hide'):-
     write("Mao do Dealer: "),
     imprimeCarta(Show),
     write(", * de *"),
-    nl.
+    nl,
+    !.
 
 
-rodadaDealer(Deck, MaoD, Deck, MaoD, 'False'):-!.
+rodadaDealer(Deck, MaoD, Deck, MaoD, 'False').
 rodadaDealer(Deck, MaoDealer, DeckAtualizado, MaoDealerAtualizada, 'True'):-
     decideJogadaDealer(MaoDealer, Jogada),
     fazJogada(Jogada, Deck, MaoDealer, Deck1, MaoDealer1),
@@ -85,8 +144,7 @@ rodadaDealer(Deck, MaoDealer, DeckAtualizado, MaoDealerAtualizada, 'True'):-
     rodadaDealer(Deck1, MaoDealer1, DeckAtualizado, MaoDealerAtualizada, Flag).
 
 decideJogadaDealer(MaoDealer, Jogada):-
-    valores_Mao(MaoDealer, Valores),
-    melhorValor(Valores, Valor),
+    melhorValor(MaoDealer, Valor),
     decideJogadaD(Valor, Jogada).
 decideJogadaD(Valor, 's'):-
     Valor >= 17.
@@ -131,8 +189,7 @@ validaJogada(Entrada, Jogada):-
     decideJogadaJogador(Jogada).
 
 temAs([carta('A',Naipe)|_], 'True'):-
-    carta('A',Naipe),
-    !.
+    carta('A',Naipe).
 temAs([], 'False').
 temAs([_|T], Flag):-
     temAs(T, Flag).
@@ -164,11 +221,26 @@ printPontuacaoParcial([V1,V2|[]]):-
     write(" ou "),
     write(V2).
 
-printPontuacaoFinal(Valores):-
-    melhorValor(Valores, Valor),
+printPontuacaoFinal(Mao):-
+    melhorValor(Mao, Valor),
     write("total: "), write(Valor).
 
-melhorValor([V1|[]], V1).
-melhorValor([_,V2|[]], V2).
+
+melhorValor(Mao, Valor):-
+    valores_Mao(Mao,Valores),
+    melhorValorAux(Valores,Valor).
+
+melhorValorAux([V1|[]], V1).
+melhorValorAux([_,V2|[]], V2).
+
+maoValida(Mao):-
+    melhorValor(Mao, Valor),
+    Valor =< 21.
+
+maoEhBlackjack(Mao):-
+    temAs(Mao,'True'),
+    melhorValor(Mao, 21),
+    length(Mao, 2),
+    !.
 
 cls :- write('\33\[2J').
