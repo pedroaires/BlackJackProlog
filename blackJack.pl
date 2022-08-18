@@ -2,39 +2,41 @@
 :- [cartas].
 
 main:-
-    iniciaJogo(MaoJ,MaoD,Deck),
-    write(MaoJ),
-    nl,
-    write(MaoD),
-    nl,
-    write(Deck),
-    nl,
-    length(Deck, Len),
-    write(Len),
-    nl,
-    rodadaJogador(Deck, MaoJ, MaoD, Deck1, MaoJ1, 100, 'True'),
-    rodadaDealer(Deck1, MaoD, Deck2, MaoD1, 'True'),
-    visaoDaMesa(MaoJ1, MaoD1, 100, 'Show'),
-    length(Deck2, Len2),
-    write(Len2),
-    write(Deck2).
+    lobby(100,'s').
 
-testeResultado:-
+jogo(Aposta, TagResult):-
     iniciaJogo(MaoJ,MaoD,Deck),
-    rodadaJogador(Deck, MaoJ, MaoD, Deck1, MaoJ1, 100, 'True'),
-    rodadaDealer(Deck1, MaoD, Deck2, MaoD1, 'True'),
-    visaoDaMesa(MaoJ1, MaoD1, 100, 'Show'),
-    resultado(MaoJ1, MaoD1, Tag),
-    nl,
-    write(Tag).
+    naoTeveBlackJack(MaoJ,MaoD,TagBJ),
+    nl,write(TagBJ), nl,
+    rodadaJogador(Deck, MaoJ, MaoD, Deck1, MaoJ1, Aposta, TagBJ),
+    rodadaDealer(Deck1, MaoD, Deck2, MaoD1, TagBJ),
+    visaoDaMesa(MaoJ1, MaoD1, Aposta, 'Show'),
+    resultado(MaoJ1, MaoD1, TagResult),
+    !.
 
-lobby:-
-    printBanca(100),
+lobby(Banca,'s'):-
+    cls,
+    printBanca(Banca),
     pegaAposta(Aposta),
-    write("Voce apostou "), write(Aposta), write(" fichas."),
-    Banca is 100 - Aposta,
+    jogo(Aposta, TagResult),
+    calculoSaldo(Aposta, TagResult, Saldo),
+    imprimeResultado(Saldo, TagResult),
+    Banca1 is Banca + Saldo,
+    desejaContinuar(Resposta),
+    lobby(Banca1, Resposta).
+
+lobby(Banca,'n'):-
+    cls,
+    write('O jogo acabou!'),
     nl,
-    write("Sua banca agora é "), write(Banca).
+    write('Voce terminou com '), write(Banca), write(' Fichas').
+
+calculoSaldo(Aposta, 'D', -Aposta).
+calculoSaldo(Aposta, 'J', Aposta).
+calculoSaldo(_, 'E', 0).
+calculoSaldo(Aposta, 'D/BJ', -Aposta).
+calculoSaldo(Aposta, 'J/BJ', Saldo):-
+    Saldo is ceiling(Aposta * rational(1.5)).
 
 % Tags de reultado:
 % 'D' = Dealer ganhou simples
@@ -77,7 +79,42 @@ resultado(MaoJ, MaoD, Tag):- % se ambas forem válidas, ganha o maior valor
      Tag = 'E')),
     !.
 
+imprimeResultado(Saldo, 'J/BJ'):-
+    write('Blackjack!!'),
+    nl,
+    write('Voce ganhou '), write(Saldo), write(' Fichas!').
+imprimeResultado(Saldo, 'D/BJ'):-
+    SaldoAbs is abs(Saldo),
+    write('O dealer fez blackjack...'),
+    nl,
+    write('Voce perdeu '), write(SaldoAbs), write(' Fichas!').
+imprimeResultado(Saldo, 'J'):-
+    write('Voce ganhou!!'),
+    nl,
+    write('Voce ganhou '), write(Saldo), write(' Fichas!').
+imprimeResultado(Saldo, 'D'):-
+    SaldoAbs is abs(Saldo),
+    write('O dealer ganhou...'),
+    nl,
+    write('Voce perdeu '), write(SaldoAbs), write(' Fichas!').
+imprimeResultado(_, 'E'):-
+    write('A mao foi empate!'),
+    nl,
+    write('Ninguem ganhou nada').
 
+desejaContinuar(Resposta):-
+    nl,
+    write("Deseja continuar jogando? (s)im ou (n)ao: "),
+    read(Entrada),
+    validaResposta(Entrada, Resposta).
+
+validaResposta('n', 'n').
+validaResposta('s', 's').    
+validaResposta(Entrada, Resposta):-
+    Entrada \= 'n',
+    Entrada \= 's',
+    write("Entrada invalida!! Digite Novamente."),
+    desejaContinuar(Resposta).
 
 
 pegaAposta(Aposta):-
@@ -167,7 +204,7 @@ fazJogada('s', Deck, MaoJogador, Deck, MaoJogador).
 continua('s', _, 'False'):-!.
 continua(_, Mao, 'False'):-
     valor_Mao(Mao, Valor),
-    Valor > 21,
+    Valor >= 21,
     !.
 continua('h', _, 'True'):-!.
 continua(Entrada, _, 'True'):-
@@ -242,5 +279,10 @@ maoEhBlackjack(Mao):-
     melhorValor(Mao, 21),
     length(Mao, 2),
     !.
+naoTeveBlackJack(MaoJ, MaoD, 'False'):-
+    maoEhBlackjack(MaoJ);
+    maoEhBlackjack(MaoD),
+    !.
+naoTeveBlackJack(_, _, 'True').
 
 cls :- write('\33\[2J').
