@@ -7,9 +7,8 @@ main:-
 jogo(Aposta, TagResult):-
     iniciaJogo(MaoJ,MaoD,Deck),
     naoTeveBlackJack(MaoJ,MaoD,TagBJ),
-    nl,write(TagBJ), nl,
     rodadaJogador(Deck, MaoJ, MaoD, Deck1, MaoJ1, Aposta, TagBJ),
-    rodadaDealer(Deck1, MaoD, Deck2, MaoD1, TagBJ),
+    rodadaDealer(Deck1, MaoD, _, MaoD1, TagBJ),
     visaoDaMesa(MaoJ1, MaoD1, Aposta, 'Show'),
     resultado(MaoJ1, MaoD1, TagResult),
     !.
@@ -62,7 +61,7 @@ resultado(MaoJ, MaoD, 'E'):-
     melhorValor(MaoJ, ValorJ),
     ValorD =:= ValorJ,
     !.
-resultado(MaoJ, MaoD, 'D'):- % Se o jogador estourou o dealer ganha direto
+resultado(MaoJ, _, 'D'):- % Se o jogador estourou o dealer ganha direto
     \+ maoValida(MaoJ),
     !.
 resultado(MaoJ, MaoD, 'J'):- % Se o jogador estourou o dealer ganha direto
@@ -80,24 +79,29 @@ resultado(MaoJ, MaoD, Tag):- % se ambas forem válidas, ganha o maior valor
     !.
 
 imprimeResultado(Saldo, 'J/BJ'):-
+    nl,
     write('Blackjack!!'),
     nl,
     write('Voce ganhou '), write(Saldo), write(' Fichas!').
 imprimeResultado(Saldo, 'D/BJ'):-
+    nl,
     SaldoAbs is abs(Saldo),
     write('O dealer fez blackjack...'),
     nl,
     write('Voce perdeu '), write(SaldoAbs), write(' Fichas!').
 imprimeResultado(Saldo, 'J'):-
+    nl,
     write('Voce ganhou!!'),
     nl,
     write('Voce ganhou '), write(Saldo), write(' Fichas!').
 imprimeResultado(Saldo, 'D'):-
+    nl,
     SaldoAbs is abs(Saldo),
     write('O dealer ganhou...'),
     nl,
     write('Voce perdeu '), write(SaldoAbs), write(' Fichas!').
 imprimeResultado(_, 'E'):-
+    nl,
     write('A mao foi empate!'),
     nl,
     write('Ninguem ganhou nada').
