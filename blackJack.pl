@@ -15,14 +15,21 @@ jogo(Aposta, TagResult):-
 
 lobby(Banca,'s'):-
     cls,
+    Banca > 0,
     printBanca(Banca),
-    pegaAposta(Aposta),
+    pegaAposta(Aposta, Banca),
     jogo(Aposta, TagResult),
     calculoSaldo(Aposta, TagResult, Saldo),
     imprimeResultado(Saldo, TagResult),
     Banca1 is Banca + Saldo,
     desejaContinuar(Resposta),
     lobby(Banca1, Resposta).
+lobby(Banca,'s'):-
+    cls,
+    Banca =< 0,
+    write('O jogo acabou!'),
+    nl,
+    write('Voce nao tinha mais fichas').
 
 lobby(Banca,'n'):-
     cls,
@@ -121,14 +128,21 @@ validaResposta(Entrada, Resposta):-
     desejaContinuar(Resposta).
 
 
-pegaAposta(Aposta):-
+pegaAposta(Aposta, Banca):-
     write("Quanto sera a proxima aposta? "),
     read(Entrada),
-    (Entrada =< 0 -> nl, 
+    (Entrada =< 0 -> 
+                    nl, 
                     write("Aposta invalida!! Digite Novamente."),
                     nl,
-                    pegaAposta(Aposta1),
+                    pegaAposta(Aposta1, Banca),
                     Aposta is Aposta1;
+    (Entrada > Banca -> 
+                    nl, 
+                    write("A aposta nao pode ser maior que a banca!! Digite Novamente."),
+                    nl,
+                    pegaAposta(Aposta1, Banca),
+                    Aposta is Aposta1);
     Aposta is Entrada
     ).
     
